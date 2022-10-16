@@ -44,13 +44,13 @@ export const handler = middy(
       }
     }
 
-    const updaloadUrl = createAttachmentPresignedUrl(todoId)
+    const uploadUrl = createAttachmentPresignedUrl(todoId)
 
     return {
       statusCode: 201,
       body: JSON.stringify(
         {
-          updaloadUrl
+          uploadUrl
         },
         null,
         2
