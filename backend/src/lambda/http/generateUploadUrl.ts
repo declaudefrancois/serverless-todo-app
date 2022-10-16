@@ -4,23 +4,63 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors, httpErrorHandler } from 'middy/middlewares'
 
-import { createAttachmentPresignedUrl } from '../../businessLogic/todos'
+import {
+  canUserUpdateTodo,
+  createAttachmentPresignedUrl
+} from '../../helpers/todos'
 import { getUserId } from '../utils'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('generateUploadUrl')
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
-    // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
-    
+    const userId = getUserId(event)
 
-    return undefined
+    logger.info('Processing Generate updload url event', {
+      event
+    })
+
+    const canUpdate = await canUserUpdateTodo(todoId, userId)
+
+    if (!canUpdate.status) {
+      const statusCode = canUpdate.reason === 'NOT_FOUND' ? 404 : 403
+      const error =
+        canUpdate.reason === 'NOT_FOUND'
+          ? 'Todo Does not exist'
+          : 'You are not allowed to delete this todo'
+
+      logger.error('generate updaload url for todo failed', {
+        statusCode,
+        error
+      })
+
+      return {
+        statusCode,
+        body: JSON.stringify({
+          error
+        })
+      }
+    }
+
+    const updaloadUrl = createAttachmentPresignedUrl(todoId)
+
+    return {
+      statusCode: 201,
+      body: JSON.stringify(
+        {
+          updaloadUrl
+        },
+        null,
+        2
+      )
+    }
   }
 )
 
-handler
-  .use(httpErrorHandler())
-  .use(
-    cors({
-      credentials: true
-    })
-  )
+handler.use(httpErrorHandler()).use(
+  cors({
+    credentials: true
+  })
+)
