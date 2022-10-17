@@ -5,7 +5,7 @@ This is a simple todo application developped using serverless framework and aws.
 The app is composed of a serverless Rest Api written is typescript (nodeJs)
 and a reactJs frontend.
 
-**N.B:** This project is part of the udacity cloud developer nanodegreen. 
+**N.B:** This project is part of the udacity cloud developer nanodegree. 
 # Functionalities
 
 - Todo CRUD
